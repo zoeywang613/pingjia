@@ -1,0 +1,365 @@
+body {
+    font-family: 'PingFang SC', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #e0e7ff;
+    color: #333;
+}
+
+.module {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #7c3aed;
+    color: white;
+    height: 80px;
+    padding: 0 15px;
+    border-radius: 0 0 10px 10px;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.navbar h1 {
+    font-size: 22px;
+    margin: 0;
+    font-weight: 500;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 8px;
+    object-fit: cover;
+    background-color: white;
+    padding: 2px;
+}
+
+.hidden {
+    display: none;
+}
+
+.input-area {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    width: 100%;
+    box-sizing: border-box;
+    height: 80px;
+    border-radius: 10px 10px 0 0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+    padding: 0;
+}
+
+.input-area > * {
+    margin: 0 12px;
+}
+
+.input-area > *:first-child {
+    margin-left: 12px;
+}
+
+.input-area > *:last-child {
+    margin-right: 12px;
+}
+
+.icon-button {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    outline: none; /* 移除点击时的轮廓 */
+    -webkit-tap-highlight-color: transparent; /* 移除移动设备上的点击高亮 */
+}
+
+.icon-button:focus {
+    outline: none; /* 移除焦点时的轮廓 */
+}
+
+.icon-button:active {
+    background: none; /* 移除点击时的背景色 */
+}
+
+.icon-button:first-child {
+    margin-left: 12px;
+    margin-right: 4px;
+}
+
+.icon-button:last-child {
+    margin-left: 12px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.input-area input[type="text"] {
+    flex: 1;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    min-width: 0;
+    margin-left: 4px;
+    margin-right: 12px;
+}
+
+.input-area input[type="text"]:focus {
+    border-color: #7c3aed;
+}
+
+.input-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.send-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.review-card {
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+button {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background-color: transparent;
+    color: white;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 8px 12px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+button::after {
+    content: "→";
+    font-size: 18px;
+}
+
+button:hover {
+}
+
+.navbar button {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chatbox {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #e0e7ff;
+    margin: 0;
+    padding: 0;
+}
+
+.chat-container {
+    padding: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 100%;
+    height: 100%;
+}
+
+.bottom-actions {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    border-top: 1px solid #eee;
+}
+
+.action-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #666;
+    font-size: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.message {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.message.user {
+    flex-direction: row-reverse;
+    padding-right: 48px; /* 为头像预留空间 */
+}
+
+.message.assistant {
+    padding-left: 48px; /* 为头像预留空间 */
+}
+
+.message-content {
+    background-color: #f3f4f6;
+    padding: 12px 16px;
+    border-radius: 12px;
+    max-width: calc(100% - 48px); /* 减去头像的空间 */
+    font-size: 16px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.message.user .message-content {
+    background-color: #7c3aed;
+    color: white;
+}
+
+.message-image {
+    max-width: 240px; /* 设置最大宽度 */
+    width: auto;
+    height: auto;
+    object-fit: contain; /* 保持原始比例 */
+    display: block;
+}
+
+.message.user .message-content:has(.message-image) {
+    padding: 8px; /* 添加适当的内边距 */
+    overflow: visible;
+    background-color: transparent;
+    max-width: 256px; /* 图片最大宽度 + 内边距 */
+}
+
+.message-content:has(.message-image) {
+    padding: 8px;
+    background-color: transparent;
+    display: inline-block; /* 让容器适应图片大小 */
+}
+
+.assistant-avatar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 适配常见手机屏幕尺寸 */
+
+/* iPhone 6/7/8 */
+@media only screen and (min-width: 375px) and (max-width: 667px) {
+    .navbar, .input-area {
+        padding: 8px;
+    }
+    .input-area input[type="text"] {
+        padding: 4px;
+    }
+}
+
+/* iPhone X/11/12/13/14 Pro */
+@media only screen and (min-width: 375px) and (max-width: 812px) {
+    .navbar, .input-area {
+        padding: 8px;
+    }
+    .input-area input[type="text"] {
+        padding: 4px;
+    }
+}
+
+/* iPhone 12/13/14 */
+@media only screen and (min-width: 390px) and (max-width: 844px) {
+    .navbar, .input-area {
+        padding: 10px;
+    }
+    .input-area input[type="text"] {
+        padding: 5px;
+    }
+}
+
+/* 安卓常见屏幕尺寸 */
+@media only screen and (min-width: 360px) and (max-width: 640px) {
+    .navbar, .input-area {
+        padding: 8px;
+    }
+    .input-area input[type="text"] {
+        padding: 4px;
+    }
+}
+
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.message.user {
+    align-self: flex-end; /* 用户消息右对齐 */
+}
+
+.message.assistant {
+    align-self: flex-start; /* 助手消息左对齐 */
+}
+
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: 100%; /* 根据需要设置最大高度 */
+}
+
+#app {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
