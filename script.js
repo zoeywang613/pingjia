@@ -2,17 +2,80 @@
 const IntentTypes = {
     OPTIMIZE_IMAGE: 'optimize_image',
     OPTIMIZE_CONTENT: 'optimize_content',
-    CHAT: 'chat'
+    CHAT: 'chat',
+    OPTIMIZE_REVIEW: 'optimize_review'
 };
 
+// 商品描述相关的关键词
+const REVIEW_KEYWORDS = [
+    // 美食相关
+    '好吃', '难吃', '味道', '口感', '分量', '食材', '新鲜',
+    '火锅', '餐厅', '菜品', '食物', '美食', '小吃', '甜点',
+    '饭店', '烧烤', '外卖', '堂食', '饮品', '奶茶',
+    '咸', '甜', '辣', '酸', '鲜', '香', '脆', '嫩', '软', '硬',
+
+    // 店铺相关
+    '店铺', '商家', '门店', '实体店', '旗舰店', '专卖店', '直营店',
+    '服务', '态度', '环境', '装修', '卫生', '整洁', '氛围',
+    '位置', '交通', '停车', '营业时间', '生意',
+
+    // 服装相关
+    '衣服', '裤子', '鞋子', '包包', '配饰', '首饰', '手表',
+    '尺码', '面料', '材质', '做工', '款式', '设计', '版型',
+    '时尚', '潮流', '百搭', '舒适', '合身', '修身',
+
+    // 价格相关
+    '价格', '价位', '便宜', '贵', '实惠', '划算', '性价比',
+    '优惠', '折扣', '促销', '特价', '性价比',
+
+    // 品质相关
+    '品质', '质量', '档次', '等级', '水平', '档位', '规格',
+    '正品', '假货', '真假', '品牌', '名牌', '高端', '奢侈',
+
+    // 包装相关
+    '包装', '外观', '颜色', '款式', '设计', '样式', '造型',
+    '精美', '简约', '豪华', '精致', '高档',
+
+    // 体验感受
+    '体验', '感受', '感觉', '印象', '评价', '点评', '推荐',
+    '差', '一般', '还行', '不错', '很棒', '优秀', '糟糕',
+    '满意', '失望', '惊喜', '后悔', '喜欢', '讨厌', '期待',
+    '下次', '再来', '回购', '复购', '推荐', '安利',
+
+    // 物流相关
+    '发货', '收货', '快递', '配送', '物流', '送货', '到货',
+    '包装', '防护', '完整', '损坏', '破损',
+
+    // 服务相关
+    '售前', '售后', '客服', '服务态度', '解决', '处理', '退换',
+    '退款', '换货', '维修', '保修', '保养'
+];
+
 // 意图识别函数
-function detectIntent(input) {
+async function detectIntent(input) {
     let intent;
     
     // 检查是否是图片输入
     if (input instanceof File && input.type.startsWith('image/')) {
         intent = IntentTypes.OPTIMIZE_IMAGE;
         console.log('✨ 意图识别结果：优化图片');
+        return intent;
+    }
+
+    // 检查是否包含商品描述关键词
+    const hasReviewKeyword = REVIEW_KEYWORDS.some(keyword => input.includes(keyword));
+    
+    if (hasReviewKeyword) {
+        console.log('✨ 意图识别结果：优化评价（通过关键词匹配）');
+        intent = IntentTypes.OPTIMIZE_REVIEW;
+        return intent;
+    }
+
+    // 检查是否明确要求优化评价
+    if (input.includes('评价') || input.includes('点评') || 
+        input.includes('帮我优化') || input.includes('生成评价')) {
+        console.log('✨ 意图识别结果：优化评价（通过明确指令）');
+        intent = IntentTypes.OPTIMIZE_REVIEW;
         return intent;
     }
 
@@ -77,7 +140,7 @@ async function handleIntent(input) {
     console.log('📥 用户输入：', input instanceof File ? '图片文件' : input);
     
     let response;
-    const currentIntent = detectIntent(input);
+    const currentIntent = await detectIntent(input);
 
     // 关键词列表
     const productKeywords = [
@@ -126,6 +189,11 @@ async function handleIntent(input) {
                 content: `根据你的描述，我帮你生成了以下评价：\n\n${generatedReview}\n\n`
             };
             break;
+        case IntentTypes.OPTIMIZE_REVIEW:
+            response = await callWenxinAPI(input, {
+                system: "你是一个专业的美食评价助手。请针对用户描述的美食体验，生成一个真实、自然的评价。"
+            });
+            break;
         case IntentTypes.CHAT:
             const chatResponses = [
                 "哈哈，聊天时间到！我可是一个很会说话的小助手呢~ 要不要让我帮你写个评价？",
@@ -158,6 +226,7 @@ async function handleIntent(input) {
 
 // 处理用户输入的主函数
 async function processUserInput(input) {
+    console.log('处理用户输入...'); // 调试日志
     let response;
     
     if (input instanceof File) {
@@ -220,6 +289,7 @@ async function processImage(imageFile) {
 
 // 处理文件上传
 async function handleFileUpload(event) {
+    console.log('处理文件上传...'); // 调试日志
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
         try {
@@ -241,221 +311,438 @@ async function handleFileUpload(event) {
     }
 }
 
-// GPT API 调用函数
-async function callGPTAPI(prompt) {
+// 添加生成评价的辅助函数
+async function generatePositiveReview(input, keywords) {
+    // 商品描述词组
+    const descriptions = {
+        quality: ['质量很好', '品质出众', '用料讲究', '做工精细', '用料上乘', '品质优良'],
+        appearance: ['外观漂亮', '设计时尚', '颜值很高', '外形美观', '款式新颖'],
+        experience: ['使用体验好', '操作方便', '体验感极佳', '用起来很舒服', '使用感很好'],
+        service: ['服务周到', '客服很专业', '售后无忧', '服务很贴心', '客服响应快'],
+        price: ['性价比高', '价格实惠', '很划算', '价位合理', '物超所值'],
+        packaging: ['包装精美', '包装严实', '包装很用心', '包装完好', '包装很专业'],
+        delivery: ['送货快', '物流给力', '配送及时', '发货速度快', '很快就收到了']
+    };
+
+    // 生成评价主体
+    const info = extractProductInfo(input, keywords);
+    const mainPoints = [];
+    
+    // 从用户输入提取关键信息
+    mainPoints.push(info.details);
+    if (info.highlights) {
+        mainPoints.push(info.highlights);
+    }
+    
+    // 随机添加2-3个其他描述
+    const categories = Object.keys(descriptions);
+    while (mainPoints.length < 4) {
+        const category = categories[Math.floor(Math.random() * categories.length)];
+        const description = descriptions[category][Math.floor(Math.random() * descriptions[category].length)];
+        if (!mainPoints.includes(description)) {
+            mainPoints.push(description);
+        }
+    }
+
+    // 生成开头
+    const openings = [
+        `这款${info.productType}真的很不错！`,
+        `非常满意这次购买的${info.productType}。`,
+        `很开心入手了这款${info.productType}。`,
+        `这个${info.productType}真的超出预期！`
+    ];
+
+    // 生成结尾
+    const endings = [
+        '总的来说非常满意，推荐给大家！',
+        '整体体验很好，值得购买！',
+        '真心推荐这款产品，不会让你失望的！',
+        '非常满意这次的选择，以后还会回购！'
+    ];
+
+    // 组合评价
+    const review = [
+        openings[Math.floor(Math.random() * openings.length)],
+        mainPoints.join('，'),
+        endings[Math.floor(Math.random() * endings.length)]
+    ].join('');
+
+    return review;
+}
+
+async function generateNegativeReview(input, keywords) {
+    // 商品问题描述词组
+    const problems = {
+        quality: ['质量一般', '做工粗糙', '用料太差', '不够耐用', '容易损坏'],
+        appearance: ['外观一般', '款式过时', '外形不够美观', '设计不够好', '做工不精致'],
+        experience: ['使用体验差', '操作不便', '体验感不好', '用着不舒服', '使用感差'],
+        service: ['服务态度差', '客服不专业', '售后不理想', '服务不到位', '客服响应慢'],
+        price: ['性价比低', '价格偏高', '不太划算', '价位不合理', '不值这个价'],
+        packaging: ['包装简陋', '包装不严实', '包装太随意', '包装有损坏', '包装不专业'],
+        defects: ['有瑕疵', '有问题', '不够完善', '有缺陷', '有故障']
+    };
+
+    // 生成评价主体
+    const info = extractProductInfo(input, keywords);
+    const mainPoints = [];
+    
+    // 从用户输入提取关键信息
+    mainPoints.push(info.details);
+    if (info.highlights) {
+        mainPoints.push(info.highlights);
+    }
+    
+    // 随机添加2-3个其他问题描述
+    const categories = Object.keys(problems);
+    while (mainPoints.length < 4) {
+        const category = categories[Math.floor(Math.random() * categories.length)];
+        const problem = problems[category][Math.floor(Math.random() * problems[category].length)];
+        if (!mainPoints.includes(problem)) {
+            mainPoints.push(problem);
+        }
+    }
+
+    // 生成开头
+    const openings = [
+        `对这款${info.productType}不太满意。`,
+        `这次购买的${info.productType}体验很差。`,
+        `不推荐购买这款${info.productType}。`,
+        `这个${info.productType}让人很失望。`
+    ];
+
+    // 生成结尾
+    const endings = [
+        '总的来说不推荐购买，建议慎重考虑。',
+        '希望商家能够改进产品质量。',
+        '不建议购买，还是选择其他产品比较好。',
+        '整体来说性价比不高，不太推荐。'
+    ];
+
+    // 组合评价
+    const review = [
+        openings[Math.floor(Math.random() * openings.length)],
+        mainPoints.join('，'),
+        endings[Math.floor(Math.random() * endings.length)]
+    ].join('');
+
+    return review;
+}
+
+async function generateNeutralReview(input, keywords) {
+    // 中性描述词组
+    const descriptions = {
+        quality: ['质量一般', '品质中规中矩', '做工还行', '用料一般', '品质还可以'],
+        appearance: ['外观普通', '设计中规中矩', '颜值一般', '外形还行', '款式简单'],
+        experience: ['使用体验一般', '操作还行', '体验感中等', '用着还行', '使用感一般'],
+        service: ['服务一般', '客服还行', '售后中规中矩', '服务态度还可以', '客服一般'],
+        price: ['性价比一般', '价格中等', '价位还行', '价格适中', '性价比中等'],
+        packaging: ['包装一般', '包装中规中矩', '包装还行', '包装简单', '包装普通'],
+        overall: ['总体一般', '整体中规中矩', '没有特别惊喜', '中规中矩', '表现一般']
+    };
+
+    // 生成评价主体
+    const info = extractProductInfo(input, keywords);
+    const mainPoints = [];
+    
+    // 从用户输入提取关键信息
+    mainPoints.push(info.details);
+    if (info.highlights) {
+        mainPoints.push(info.highlights);
+    }
+    
+    // 随机添加2-3个其他描述
+    const categories = Object.keys(descriptions);
+    while (mainPoints.length < 4) {
+        const category = categories[Math.floor(Math.random() * categories.length)];
+        const description = descriptions[category][Math.floor(Math.random() * descriptions[category].length)];
+        if (!mainPoints.includes(description)) {
+            mainPoints.push(description);
+        }
+    }
+
+    // 生成开头
+    const openings = [
+        `这款${info.productType}总体来说中规中矩。`,
+        `对这个${info.productType}的评价比较中肯。`,
+        `这个${info.productType}整体表现一般。`,
+        `对这款${info.productType}没有特别的惊喜或失望。`
+    ];
+
+    // 生成结尾
+    const endings = [
+        '仁者见仁智者见智，建议根据个人需求选择。',
+        '可以考虑购买，但建议货比三家。',
+        '如果预算合适可以考虑，但也可以看看其他选择。',
+        '总的来说中规中矩，适合要求不高的朋友。'
+    ];
+
+    // 组合评价
+    const review = [
+        openings[Math.floor(Math.random() * openings.length)],
+        mainPoints.join('，'),
+        endings[Math.floor(Math.random() * endings.length)]
+    ].join('');
+
+    return review;
+}
+
+function extractProductInfo(input, keywords) {
+    // 提取商品类型
+    let productType = '商品';
+    const productKeywords = ['商品', '产品', '东西', '物品'];
+    for (const keyword of keywords) {
+        if (!productKeywords.includes(keyword)) {
+            productType = keyword;
+            break;
+        }
+    }
+
+    // 提取细节描述
+    let details = [];
+    const detailWords = input.split(/[,，.。!！?？]/);
+    detailWords.forEach(word => {
+        if (word.length > 2 && !details.includes(word)) {
+            details.push(word.trim());
+        }
+    });
+
+    // 提取亮点/问题
+    let highlights = [];
+    keywords.forEach(keyword => {
+        const index = input.indexOf(keyword);
+        if (index !== -1) {
+            const surrounding = input.substring(Math.max(0, index - 10), Math.min(input.length, index + 10));
+            if (!highlights.includes(surrounding)) {
+                highlights.push(surrounding.trim());
+            }
+        }
+    });
+
+    return {
+        productType: productType,
+        details: details.length > 0 ? details[Math.floor(Math.random() * details.length)] : '各方面表现',
+        highlights: highlights.length > 0 ? highlights[Math.floor(Math.random() * highlights.length)] : '使用体验'
+    };
+}
+
+// 获取文心一言访问令牌
+let currentAccessToken = null;
+let tokenExpireTime = 0;
+async function getAccessToken() {
+    // 如果令牌还在有效期内，直接返回
+    if (currentAccessToken && Date.now() < tokenExpireTime) {
+        return currentAccessToken;
+    }
+
+    const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${WENXIN_CONFIG.API_KEY}&client_secret=${WENXIN_CONFIG.SECRET_KEY}`;
     try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.openaiApiKey}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
-                messages: [{
-                    role: 'system',
-                    content: '你是一个专业的美食点评助手，擅长生成真实、生动、有说服力的美食评价。'
-                }, {
-                    role: 'user',
-                    content: prompt
-                }],
-                temperature: 0.7,
-                max_tokens: 500
-            })
+                'Accept': 'application/json'
+            }
         });
-
-        const data = await response.json();
-        if (data.choices && data.choices[0]) {
-            return data.choices[0].message.content;
-        } else {
-            throw new Error('No response from GPT');
+        const result = await response.json();
+        if (result.access_token) {
+            currentAccessToken = result.access_token;
+            // 设置令牌过期时间（提前5分钟过期）
+            tokenExpireTime = Date.now() + (result.expires_in - 300) * 1000;
+            return currentAccessToken;
         }
+        throw new Error('Failed to get access token');
     } catch (error) {
-        console.error('GPT API 调用失败:', error);
+        console.error('获取访问令牌失败:', error);
         return null;
     }
 }
 
-// 修改生成评价的函数
-async function generatePositiveReview(input, keywords) {
-    const prompt = `请根据以下信息生成一个正面的美食评价。
-    商品信息：${input}
-    关键词：${keywords.join(', ')}
-    要求：
-    1. 评价要真实、生动、有感染力
-    2. 突出食物的特色和亮点
-    3. 描述要具体，包含感官体验
-    4. 语气要自然，像真实顾客的评价
-    5. 字数在100-150字之间`;
+// 调用文心一言 API
+async function callWenxinAPI(prompt, config) {
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+        return '抱歉，我现在无法连接到服务器，请稍后再试。';
+    }
 
-    const gptResponse = await callGPTAPI(prompt);
-    return gptResponse || '抱歉，评价生成失败，请稍后重试。';
-}
+    const url = `${WENXIN_CONFIG.BASE_URL}?access_token=${accessToken}`;
+    try {
+        console.log('发送请求到文心一言API:', url); // 调试日志
+        console.log('请求内容:', prompt); // 调试日志
 
-async function generateNegativeReview(input, keywords) {
-    const prompt = `请根据以下信息生成一个中肯的建议性评价。
-    商品信息：${input}
-    关键词：${keywords.join(', ')}
-    要求：
-    1. 评价要客观、理性，不过分苛刻
-    2. 指出需要改进的地方，但语气要委婉
-    3. 给出具体的改进建议
-    4. 也要提到值得肯定的方面
-    5. 字数在100-150字之间`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                system: config.system,
+                messages: [{
+                    role: "user",
+                    content: prompt
+                }],
+                temperature: 0.8,
+                top_p: 0.9,
+                penalty_score: 1.0
+            })
+        });
 
-    const gptResponse = await callGPTAPI(prompt);
-    return gptResponse || '抱歉，评价生成失败，请稍后重试。';
-}
+        const result = await response.json();
+        console.log('API完整响应:', result); // 调试日志
 
-async function generateNeutralReview(input, keywords) {
-    const prompt = `请根据以下信息生成一个中立的美食评价。
-    商品信息：${input}
-    关键词：${keywords.join(', ')}
-    要求：
-    1. 评价要客观、全面
-    2. 同时描述优点和不足
-    3. 提供个性化的建议
-    4. 适合什么样的人群
-    5. 字数在100-150字之间`;
+        if (!response.ok || result.error_code) {
+            console.error('API错误响应:', result);
+            throw new Error(`API返回错误: ${result.error_msg || '未知错误'}`);
+        }
 
-    const gptResponse = await callGPTAPI(prompt);
-    return gptResponse || '抱歉，评价生成失败，请稍后重试。';
-}
-
-// 模块切换函数
-function switchModule(targetModuleId) {
-    // 获取所有模块
-    const modules = document.querySelectorAll('.module');
-    
-    // 隐藏所有模块
-    modules.forEach(module => {
-        module.classList.add('hidden');
-    });
-    
-    // 显示目标模块
-    const targetModule = document.getElementById(targetModuleId);
-    if (targetModule) {
-        targetModule.classList.remove('hidden');
+        return result.result || '抱歉，我现在无法生成回复，请稍后再试。';
+    } catch (error) {
+        console.error('调用文心一言API失败:', error);
+        return `抱歉，发生了一些错误: ${error.message}`;
     }
 }
 
-// 发送消息的函数
-async function sendMessage() {
-    const userInput = document.getElementById('user-input');
-    const input = userInput.value.trim();
-    
-    if (input) {
-        // 显示用户消息
-        displayUserMessage(input);
-        userInput.value = '';
-        
-        // 处理用户输入
-        await processUserInput(input);
+// 处理用户输入
+async function handleUserInput() {
+    console.log('处理用户输入...'); // 调试日志
+    const input = document.getElementById('user-input').value.trim();
+    if (!input) {
+        console.log('输入为空，不处理');
+        return;
     }
-}
 
-// 处理文件上传
-async function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        try {
-            // 显示用户上传的原始图片
-            displayUserImage(file);
-            
-            // 处理图片并显示结果
-            await processImage(file);
-            
-            // 清除文件输入，允许重复上传相同的文件
-            event.target.value = '';
-        } catch (error) {
-            console.error('处理图片时出错：', error);
-            displayResponse({
-                type: 'text',
-                content: '抱歉，处理图片时出现了问题。请稍后重试。'
+    console.log('用户输入:', input); // 调试日志
+
+    // 清空输入框
+    document.getElementById('user-input').value = '';
+
+    // 添加用户消息到聊天框
+    addMessage('user', input);
+
+    try {
+        // 识别意图
+        const intent = await detectIntent(input);
+        console.log('识别到的意图:', intent);
+
+        let response;
+        if (intent === 'optimize_review') {
+            // 评价优化意图
+            response = await callWenxinAPI(input, {
+                system: "你是一个专业的评价助手。请根据用户描述，生成一个100字左右的真实、自然的评价。"
+            });
+        } else {
+            // 闲聊意图
+            response = await callWenxinAPI(input, {
+                system: "你是一个温暖、友好的助手。在与用户聊天过程中，请提醒他们可以'描述商品'，让你来帮助他们优化商品评价，或者提醒他们上传图片，你可以帮他们优化图片。"
             });
         }
+
+        // 添加助手回复到聊天框
+        addMessage('assistant', response);
+
+    } catch (error) {
+        console.error('处理用户输入时发生错误:', error);
+        addMessage('assistant', '抱歉，发生了一些错误，请稍后再试。');
     }
 }
 
-// 初始化事件监听器
-document.addEventListener('DOMContentLoaded', function() {
-    // 发送按钮点击事件
-    document.getElementById('send-button').addEventListener('click', sendMessage);
-    
-    // 输入框回车事件
-    document.getElementById('user-input').addEventListener('keypress', async function(e) {
-        if (e.key === 'Enter') {
-            await sendMessage();
-        }
-    });
-    
-    // 文件上传事件
-    document.getElementById('upload-image').addEventListener('change', handleFileUpload);
-});
+// 处理图片上传
+async function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-// 显示响应的函数
-function displayResponse(response) {
-    const chatBox = document.querySelector('.chat-container');
+    try {
+        console.log('处理图片上传...'); // 调试日志
+        
+        // 显示原始图片
+        displayUserImage(file);
+        
+        // 优化图片
+        const optimizedImage = await enhanceImage(file);
+        if (optimizedImage) {
+            // 显示优化后的图片
+            displayOptimizedImage(optimizedImage);
+            
+            // 提示用户
+            addMessage('assistant', '我已经帮你优化了图片的效果，你可以继续添加评价内容，我来帮你生成一个精美的评价。');
+        }
+    } catch (error) {
+        console.error('处理图片时发生错误:', error);
+        addMessage('assistant', '抱歉，处理图片时出现了问题，请稍后再试。');
+    }
+}
+
+// 图片美化函数
+async function enhanceImage(file) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // 设置画布大小
+                canvas.width = img.width;
+                canvas.height = img.height;
+                
+                // 绘制原始图片
+                ctx.drawImage(img, 0, 0);
+                
+                // 应用图像处理
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                // 增强对比度和饱和度
+                for (let i = 0; i < data.length; i += 4) {
+                    // 提高对比度
+                    data[i] = data[i] * 1.2;     // R
+                    data[i + 1] = data[i + 1] * 1.2; // G
+                    data[i + 2] = data[i + 2] * 1.2; // B
+                    
+                    // 确保值在0-255范围内
+                    data[i] = Math.min(255, Math.max(0, data[i]));
+                    data[i + 1] = Math.min(255, Math.max(0, data[i + 1]));
+                    data[i + 2] = Math.min(255, Math.max(0, data[i + 2]));
+                }
+                
+                // 将处理后的图像数据放回画布
+                ctx.putImageData(imageData, 0, 0);
+                
+                // 转换为base64格式
+                const optimizedImageUrl = canvas.toDataURL('image/jpeg', 0.9);
+                resolve(optimizedImageUrl);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        img.onerror = reject;
+        img.src = URL.createObjectURL(file);
+    });
+}
+
+// 显示优化后的图片
+function displayOptimizedImage(imageUrl) {
+    console.log('显示优化后的图片...'); // 调试日志
+    const chatContainer = document.querySelector('.chat-container');
+    if (!chatContainer) {
+        console.error('找不到聊天容器元素');
+        return;
+    }
+
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message assistant';
-
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
-
-    if (response.type === 'image') {
-        // 创建图片元素
-        const img = document.createElement('img');
-        img.src = response.content;
-        img.className = 'response-image';
-        img.style.maxWidth = '100%';
-        img.style.borderRadius = '8px';
-        contentDiv.appendChild(img);
-
-        // 如果有附带消息，添加消息文本
-        if (response.message) {
-            const messageText = document.createElement('p');
-            messageText.textContent = response.message;
-            messageText.style.marginTop = '8px';
-            contentDiv.appendChild(messageText);
-        }
-    } else {
-        // 处理文本消息，支持换行
-        const textLines = response.content.split('\n');
-        textLines.forEach((line, index) => {
-            if (index > 0) {
-                contentDiv.appendChild(document.createElement('br'));
-            }
-            contentDiv.appendChild(document.createTextNode(line));
-        });
-    }
-
-    // 添加助手头像
-    const assistantAvatar = document.createElement('img');
-    assistantAvatar.src = './images/assistant-avatar.png';
-    assistantAvatar.className = 'assistant-avatar';
-    assistantAvatar.alt = 'Assistant Avatar';
-
-    messageDiv.appendChild(contentDiv);
-    messageDiv.appendChild(assistantAvatar);
-    
-    chatBox.appendChild(messageDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// 显示用户消息的函数
-function displayUserMessage(input) {
-    const chatContainer = document.querySelector('.chat-container');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message user';
     
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
-    contentDiv.textContent = input;
+    
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.className = 'message-image';
+    contentDiv.appendChild(img);
     
     const avatarImg = document.createElement('img');
-    avatarImg.src = './images/avatar-placeholder.png';
-    avatarImg.className = 'user-avatar';
-    avatarImg.alt = 'User Avatar';
+    avatarImg.src = './images/bot-avatar.png';
+    avatarImg.className = 'assistant-avatar';
+    avatarImg.alt = 'Assistant Avatar';
     
     messageDiv.appendChild(contentDiv);
     messageDiv.appendChild(avatarImg);
@@ -466,7 +753,13 @@ function displayUserMessage(input) {
 
 // 显示用户上传的图片
 function displayUserImage(file) {
+    console.log('显示用户上传的图片...'); // 调试日志
     const chatContainer = document.querySelector('.chat-container');
+    if (!chatContainer) {
+        console.error('找不到聊天容器元素');
+        return;
+    }
+
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message user';
     
@@ -490,80 +783,210 @@ function displayUserImage(file) {
     chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-// 图片美化函数
-async function enhanceImage(file) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-            // 创建 canvas
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // 设置 canvas 尺寸
-            canvas.width = img.width;
-            canvas.height = img.height;
-            
-            // 绘制原始图片
-            ctx.drawImage(img, 0, 0);
-            
-            // 获取图片数据
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            
-            // 应用图片增强效果
-            for (let i = 0; i < data.length; i += 4) {
-                // 提取 RGB 值
-                let r = data[i];
-                let g = data[i + 1];
-                let b = data[i + 2];
+// 初始化事件监听器
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM 已加载，初始化事件监听器...'); // 调试日志
 
-                // 计算亮度
-                const brightness = (r + g + b) / 3;
-                
-                // 增加亮度 (1.2 = 增加 20%)
-                r *= 1.2;
-                g *= 1.2;
-                b *= 1.2;
-                
-                // 增加对比度
-                const factor = 1.4; // 对比度因子
-                r = factor * (r - 128) + 128;
-                g = factor * (g - 128) + 128;
-                b = factor * (b - 128) + 128;
+    // 上传按钮点击事件
+    const uploadButton = document.getElementById('upload-button');
+    const uploadInput = document.getElementById('upload-image');
+    if (uploadButton && uploadInput) {
+        console.log('找到上传按钮和输入框，添加事件监听器');
+        uploadButton.addEventListener('click', () => {
+            uploadInput.click();
+        });
+        uploadInput.addEventListener('change', handleImageUpload);
+    } else {
+        console.error('未找到上传按钮或输入框');
+    }
 
-                // 增加饱和度
-                const saturationFactor = 1.3; // 饱和度增加30%
-                const avg = (r + g + b) / 3;
-                r = avg + (r - avg) * saturationFactor;
-                g = avg + (g - avg) * saturationFactor;
-                b = avg + (b - avg) * saturationFactor;
+    // 发送按钮点击事件
+    const sendButton = document.getElementById('send-button');
+    if (sendButton) {
+        console.log('找到发送按钮，添加事件监听器');
+        sendButton.addEventListener('click', async () => {
+            await handleUserInput();
+        });
+    } else {
+        console.error('未找到发送按钮');
+    }
 
-                // 简单的锐化效果
-                if (i > 0 && i < data.length - 4) {
-                    const prevBrightness = (data[i - 4] + data[i - 3] + data[i - 2]) / 3;
-                    if (Math.abs(brightness - prevBrightness) > 10) {
-                        r *= 1.2;
-                        g *= 1.2;
-                        b *= 1.2;
-                    }
-                }
-                
-                // 确保值在 0-255 范围内
-                data[i] = Math.min(255, Math.max(0, r));
-                data[i + 1] = Math.min(255, Math.max(0, g));
-                data[i + 2] = Math.min(255, Math.max(0, b));
+    // 输入框回车事件
+    const userInput = document.getElementById('user-input');
+    if (userInput) {
+        console.log('找到输入框，添加事件监听器');
+        userInput.addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                await handleUserInput();
             }
-            
-            // 将处理后的数据放回 canvas
-            ctx.putImageData(imageData, 0, 0);
-            
-            // 转换为 Blob，使用较高的质量设置
-            canvas.toBlob((blob) => {
-                resolve(blob);
-            }, 'image/jpeg', 0.98); // 提高质量到98%
-        };
-        
-        img.onerror = reject;
-        img.src = URL.createObjectURL(file);
+        });
+    } else {
+        console.error('未找到输入框');
+    }
+});
+
+// 模块切换函数
+function switchModule(targetModuleId) {
+    // 获取所有模块
+    const modules = document.querySelectorAll('.module');
+    
+    // 隐藏所有模块
+    modules.forEach(module => {
+        module.classList.add('hidden');
     });
+    
+    // 显示目标模块
+    const targetModule = document.getElementById(targetModuleId);
+    if (targetModule) {
+        targetModule.classList.remove('hidden');
+    }
+}
+
+// 添加消息到聊天框
+function addMessage(type, content) {
+    const messageContainer = document.querySelector('.chat-container');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+
+    if (typeof content === 'string') {
+        contentDiv.textContent = content;
+    } else if (content instanceof HTMLImageElement) {
+        contentDiv.appendChild(content);
+    }
+
+    // 如果是助手消息，添加操作按钮
+    if (type === 'assistant') {
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'message-actions';
+
+        // 复制按钮
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'action-button copy-btn';
+        copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+        copyBtn.onclick = () => copyMessage(content);
+
+        // 分享按钮
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'action-button share-btn';
+        shareBtn.innerHTML = '<i class="fas fa-share"></i>';
+        shareBtn.onclick = () => shareMessage(content);
+
+        // 发布按钮
+        const publishBtn = document.createElement('button');
+        publishBtn.className = 'action-button publish-btn';
+        publishBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        publishBtn.onclick = () => {
+            showTooltip('已发布到附近的评价广场');
+        };
+
+        actionsDiv.appendChild(copyBtn);
+        actionsDiv.appendChild(shareBtn);
+        actionsDiv.appendChild(publishBtn);
+        contentDiv.appendChild(actionsDiv);
+    }
+
+    // 添加头像
+    const avatarImg = document.createElement('img');
+    if (type === 'user') {
+        avatarImg.src = './images/avatar-placeholder.png';
+        avatarImg.className = 'user-avatar';
+        avatarImg.alt = 'User Avatar';
+    } else {
+        avatarImg.src = './images/bot-avatar.png';
+        avatarImg.className = 'assistant-avatar';
+        avatarImg.alt = 'Assistant Avatar';
+    }
+
+    messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(avatarImg);
+    
+    messageContainer.appendChild(messageDiv);
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+}
+
+// 复制消息内容
+async function copyMessage(content) {
+    let textToCopy;
+    
+    if (typeof content === 'string') {
+        textToCopy = content;
+    } else if (content instanceof HTMLImageElement) {
+        try {
+            const blob = await fetch(content.src).then(r => r.blob());
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    [blob.type]: blob
+                })
+            ]);
+            showTooltip('图片已复制到剪贴板');
+            return;
+        } catch (err) {
+            console.error('复制图片失败:', err);
+            showTooltip('复制图片失败');
+            return;
+        }
+    }
+
+    try {
+        await navigator.clipboard.writeText(textToCopy);
+        showTooltip('文本已复制到剪贴板');
+    } catch (err) {
+        console.error('复制文本失败:', err);
+        showTooltip('复制失败');
+    }
+}
+
+// 分享消息内容
+async function shareMessage(content) {
+    let shareData = {
+        title: '商品评价助手',
+        text: typeof content === 'string' ? content : '分享一张图片',
+    };
+
+    if (content instanceof HTMLImageElement) {
+        try {
+            const blob = await fetch(content.src).then(r => r.blob());
+            shareData.files = [
+                new File([blob], 'shared-image.png', { type: blob.type })
+            ];
+        } catch (err) {
+            console.error('准备分享图片失败:', err);
+        }
+    }
+
+    try {
+        await navigator.share(shareData);
+        showTooltip('分享成功');
+    } catch (err) {
+        console.error('分享失败:', err);
+        if (err.name === 'AbortError') {
+            // 用户取消分享
+            return;
+        }
+        showTooltip('分享失败');
+    }
+}
+
+// 显示提示信息
+function showTooltip(message) {
+    let tooltip = document.querySelector('.copy-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.className = 'copy-tooltip';
+        document.body.appendChild(tooltip);
+    }
+
+    tooltip.textContent = message;
+    tooltip.style.left = '50%';
+    tooltip.style.top = '50%';
+    tooltip.style.transform = 'translate(-50%, -50%)';
+    tooltip.classList.add('show');
+
+    setTimeout(() => {
+        tooltip.classList.remove('show');
+    }, 2000);
 }

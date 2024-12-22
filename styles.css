@@ -208,14 +208,120 @@ button:hover {
 }
 
 .action-button {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 5px;
-    color: #666;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.action-button:hover {
+    background-color: #f5f5f5;
+    border-color: #ccc;
+}
+
+.action-button i {
     font-size: 14px;
+}
+
+/* 复制按钮 */
+.copy-btn::after {
+    content: '复制';
+    margin-left: 4px;
+}
+
+/* 分享按钮 */
+.share-btn::after {
+    content: '分享';
+    margin-left: 4px;
+}
+
+/* 发布按钮 */
+.publish-btn::after {
+    content: '发布';
+    margin-left: 4px;
+}
+
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.message.user {
+    align-self: flex-end; /* 用户消息右对齐 */
+}
+
+.message.assistant {
+    align-self: flex-start; /* 助手消息左对齐 */
+}
+
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: 100%; /* 根据需要设置最大高度 */
+}
+
+#app {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 消息操作按钮容器 */
+.message-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+/* 操作按钮样式 */
+.action-button {
     background: none;
-    border: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #666;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.action-button:hover {
+    background-color: #f5f5f5;
+    border-color: #ccc;
+}
+
+.action-button i {
+    font-size: 14px;
+}
+
+/* 复制成功提示 */
+.copy-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.copy-tooltip.show {
+    opacity: 1;
 }
 
 .message {
@@ -335,31 +441,4 @@ button:hover {
     .input-area input[type="text"] {
         padding: 4px;
     }
-}
-
-.message {
-    margin: 10px 0;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-.message.user {
-    align-self: flex-end; /* 用户消息右对齐 */
-}
-
-.message.assistant {
-    align-self: flex-start; /* 助手消息左对齐 */
-}
-
-.chat-container {
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    max-height: 100%; /* 根据需要设置最大高度 */
-}
-
-#app {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
 }

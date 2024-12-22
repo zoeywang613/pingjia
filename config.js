@@ -1,6 +1,8 @@
-const config = {
-    openaiApiKey: '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', // 替换为你的 OpenAI API 密钥
-    apiEndpoint: 'https://api.openai.com/v1/chat/completions'
+// 文心一言 API 配置
+const WENXIN_CONFIG = {
+    API_KEY: '2WQqd2ieO2dfdMqHYfVL14iJ',
+    SECRET_KEY: 'o5VjSvLSluYxtzf30BBqsbE6pk8kDRxT',
+    BASE_URL: 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro',
 };
 
-export default config;
+// 其他配置...
