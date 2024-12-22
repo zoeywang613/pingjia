@@ -114,11 +114,11 @@ async function handleIntent(input) {
             let generatedReview = '';
             
             if (hasPositive) {
-                generatedReview = generatePositiveReview(input, matchedKeywords);
+                generatedReview = await generatePositiveReview(input, matchedKeywords);
             } else if (hasNegative) {
-                generatedReview = generateNegativeReview(input, matchedKeywords);
+                generatedReview = await generateNegativeReview(input, matchedKeywords);
             } else {
-                generatedReview = generateNeutralReview(input, matchedKeywords);
+                generatedReview = await generateNeutralReview(input, matchedKeywords);
             }
 
             response = {
@@ -241,218 +241,85 @@ async function handleFileUpload(event) {
     }
 }
 
-// 添加生成评价的辅助函数
-function generatePositiveReview(input, keywords) {
-    // 商品描述词组
-    const descriptions = {
-        quality: ['质量很好', '品质出众', '用料讲究', '做工精细', '用料上乘', '品质优良'],
-        appearance: ['外观漂亮', '设计时尚', '颜值很高', '外形美观', '款式新颖'],
-        experience: ['使用体验好', '操作方便', '体验感极佳', '用起来很舒服', '使用感很好'],
-        service: ['服务周到', '客服很专业', '售后无忧', '服务很贴心', '客服响应快'],
-        price: ['性价比高', '价格实惠', '很划算', '价位合理', '物超所值'],
-        packaging: ['包装精美', '包装严实', '包装很用心', '包装完好', '包装很专业'],
-        delivery: ['送货快', '物流给力', '配送及时', '发货速度快', '很快就收到了']
-    };
+// GPT API 调用函数
+async function callGPTAPI(prompt) {
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${config.openaiApiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [{
+                    role: 'system',
+                    content: '你是一个专业的美食点评助手，擅长生成真实、生动、有说服力的美食评价。'
+                }, {
+                    role: 'user',
+                    content: prompt
+                }],
+                temperature: 0.7,
+                max_tokens: 500
+            })
+        });
 
-    // 生成评价主体
-    const info = extractProductInfo(input, keywords);
-    const mainPoints = [];
-    
-    // 从用户输入提取关键信息
-    mainPoints.push(info.details);
-    if (info.highlights) {
-        mainPoints.push(info.highlights);
-    }
-    
-    // 随机添加2-3个其他描述
-    const categories = Object.keys(descriptions);
-    while (mainPoints.length < 4) {
-        const category = categories[Math.floor(Math.random() * categories.length)];
-        const description = descriptions[category][Math.floor(Math.random() * descriptions[category].length)];
-        if (!mainPoints.includes(description)) {
-            mainPoints.push(description);
+        const data = await response.json();
+        if (data.choices && data.choices[0]) {
+            return data.choices[0].message.content;
+        } else {
+            throw new Error('No response from GPT');
         }
+    } catch (error) {
+        console.error('GPT API 调用失败:', error);
+        return null;
     }
-
-    // 生成开头
-    const openings = [
-        `这款${info.productType}真的很不错！`,
-        `非常满意这次购买的${info.productType}。`,
-        `很开心入手了这款${info.productType}。`,
-        `这个${info.productType}真的超出预期！`
-    ];
-
-    // 生成结尾
-    const endings = [
-        '总的来说非常满意，推荐给大家！',
-        '整体体验很好，值得购买！',
-        '真心推荐这款产品，不会让你失望的！',
-        '非常满意这次的选择，以后还会回购！'
-    ];
-
-    // 组合评价
-    const review = [
-        openings[Math.floor(Math.random() * openings.length)],
-        mainPoints.join('，'),
-        endings[Math.floor(Math.random() * endings.length)]
-    ].join('');
-
-    return review;
 }
 
-function generateNegativeReview(input, keywords) {
-    // 商品问题描述词组
-    const problems = {
-        quality: ['质量一般', '做工粗糙', '用料太差', '不够耐用', '容易损坏'],
-        appearance: ['外观一般', '款式过时', '外形不够美观', '设计不够好', '做工不精致'],
-        experience: ['使用体验差', '操作不便', '体验感不好', '用着不舒服', '使用感差'],
-        service: ['服务态度差', '客服不专业', '售后不理想', '服务不到位', '客服响应慢'],
-        price: ['性价比低', '价格偏高', '不太划算', '价位不合理', '不值这个价'],
-        packaging: ['包装简陋', '包装不严实', '包装太随意', '包装有损坏', '包装不专业'],
-        defects: ['有瑕疵', '有问题', '不够完善', '有缺陷', '有故障']
-    };
+// 修改生成评价的函数
+async function generatePositiveReview(input, keywords) {
+    const prompt = `请根据以下信息生成一个正面的美食评价。
+    商品信息：${input}
+    关键词：${keywords.join(', ')}
+    要求：
+    1. 评价要真实、生动、有感染力
+    2. 突出食物的特色和亮点
+    3. 描述要具体，包含感官体验
+    4. 语气要自然，像真实顾客的评价
+    5. 字数在100-150字之间`;
 
-    // 生成评价主体
-    const info = extractProductInfo(input, keywords);
-    const mainPoints = [];
-    
-    // 从用户输入提取关键信息
-    mainPoints.push(info.details);
-    if (info.highlights) {
-        mainPoints.push(info.highlights);
-    }
-    
-    // 随机添加2-3个其他问题描述
-    const categories = Object.keys(problems);
-    while (mainPoints.length < 4) {
-        const category = categories[Math.floor(Math.random() * categories.length)];
-        const problem = problems[category][Math.floor(Math.random() * problems[category].length)];
-        if (!mainPoints.includes(problem)) {
-            mainPoints.push(problem);
-        }
-    }
-
-    // 生成开头
-    const openings = [
-        `对这款${info.productType}不太满意。`,
-        `这次购买的${info.productType}体验很差。`,
-        `不推荐购买这款${info.productType}。`,
-        `这个${info.productType}让人很失望。`
-    ];
-
-    // 生成结尾
-    const endings = [
-        '总的来说不推荐购买，建议慎重考虑。',
-        '希望商家能够改进产品质量。',
-        '不建议购买，还是选择其他产品比较好。',
-        '整体来说性价比不高，不太推荐。'
-    ];
-
-    // 组合评价
-    const review = [
-        openings[Math.floor(Math.random() * openings.length)],
-        mainPoints.join('，'),
-        endings[Math.floor(Math.random() * endings.length)]
-    ].join('');
-
-    return review;
+    const gptResponse = await callGPTAPI(prompt);
+    return gptResponse || '抱歉，评价生成失败，请稍后重试。';
 }
 
-function generateNeutralReview(input, keywords) {
-    // 中性描述词组
-    const descriptions = {
-        quality: ['质量一般', '品质中规中矩', '做工还行', '用料一般', '品质还可以'],
-        appearance: ['外观普通', '设计中规中矩', '颜值一般', '外形还行', '款式简单'],
-        experience: ['使用体验一般', '操作还行', '体验感中等', '用着还行', '使用感一般'],
-        service: ['服务一般', '客服还行', '售后中规中矩', '服务态度还可以', '客服一般'],
-        price: ['性价比一般', '价格中等', '价位还行', '价格适中', '性价比中等'],
-        packaging: ['包装一般', '包装中规中矩', '包装还行', '包装简单', '包装普通'],
-        overall: ['总体一般', '整体中规中矩', '没有特别惊喜', '中规中矩', '表现一般']
-    };
+async function generateNegativeReview(input, keywords) {
+    const prompt = `请根据以下信息生成一个中肯的建议性评价。
+    商品信息：${input}
+    关键词：${keywords.join(', ')}
+    要求：
+    1. 评价要客观、理性，不过分苛刻
+    2. 指出需要改进的地方，但语气要委婉
+    3. 给出具体的改进建议
+    4. 也要提到值得肯定的方面
+    5. 字数在100-150字之间`;
 
-    // 生成评价主体
-    const info = extractProductInfo(input, keywords);
-    const mainPoints = [];
-    
-    // 从用户输入提取关键信息
-    mainPoints.push(info.details);
-    if (info.highlights) {
-        mainPoints.push(info.highlights);
-    }
-    
-    // 随机添加2-3个其他描述
-    const categories = Object.keys(descriptions);
-    while (mainPoints.length < 4) {
-        const category = categories[Math.floor(Math.random() * categories.length)];
-        const description = descriptions[category][Math.floor(Math.random() * descriptions[category].length)];
-        if (!mainPoints.includes(description)) {
-            mainPoints.push(description);
-        }
-    }
-
-    // 生成开头
-    const openings = [
-        `这款${info.productType}总体来说中规中矩。`,
-        `对这个${info.productType}的评价比较中肯。`,
-        `这个${info.productType}整体表现一般。`,
-        `对这款${info.productType}没有特别的惊喜或失望。`
-    ];
-
-    // 生成结尾
-    const endings = [
-        '仁者见仁智者见智，建议根据个人需求选择。',
-        '可以考虑购买，但建议货比三家。',
-        '如果预算合适可以考虑，但也可以看看其他选择。',
-        '总的来说中规中矩，适合要求不高的朋友。'
-    ];
-
-    // 组合评价
-    const review = [
-        openings[Math.floor(Math.random() * openings.length)],
-        mainPoints.join('，'),
-        endings[Math.floor(Math.random() * endings.length)]
-    ].join('');
-
-    return review;
+    const gptResponse = await callGPTAPI(prompt);
+    return gptResponse || '抱歉，评价生成失败，请稍后重试。';
 }
 
-function extractProductInfo(input, keywords) {
-    // 提取商品类型
-    let productType = '商品';
-    const productKeywords = ['商品', '产品', '东西', '物品'];
-    for (const keyword of keywords) {
-        if (!productKeywords.includes(keyword)) {
-            productType = keyword;
-            break;
-        }
-    }
+async function generateNeutralReview(input, keywords) {
+    const prompt = `请根据以下信息生成一个中立的美食评价。
+    商品信息：${input}
+    关键词：${keywords.join(', ')}
+    要求：
+    1. 评价要客观、全面
+    2. 同时描述优点和不足
+    3. 提供个性化的建议
+    4. 适合什么样的人群
+    5. 字数在100-150字之间`;
 
-    // 提取细节描述
-    let details = [];
-    const detailWords = input.split(/[,，.。!！?？]/);
-    detailWords.forEach(word => {
-        if (word.length > 2 && !details.includes(word)) {
-            details.push(word.trim());
-        }
-    });
-
-    // 提取亮点/问题
-    let highlights = [];
-    keywords.forEach(keyword => {
-        const index = input.indexOf(keyword);
-        if (index !== -1) {
-            const surrounding = input.substring(Math.max(0, index - 10), Math.min(input.length, index + 10));
-            if (!highlights.includes(surrounding)) {
-                highlights.push(surrounding.trim());
-            }
-        }
-    });
-
-    return {
-        productType: productType,
-        details: details.length > 0 ? details[Math.floor(Math.random() * details.length)] : '各方面表现',
-        highlights: highlights.length > 0 ? highlights[Math.floor(Math.random() * highlights.length)] : '使用体验'
-    };
+    const gptResponse = await callGPTAPI(prompt);
+    return gptResponse || '抱歉，评价生成失败，请稍后重试。';
 }
 
 // 模块切换函数
