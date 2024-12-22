@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>商品评价工具</title>
-    <link rel="stylesheet" href="/styles.css">
-    <link rel="stylesheet" href="/reviews.css">
+    <base href="/pingjia/">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="reviews.css">
 </head>
 <body>
     <div id="app">
@@ -13,7 +14,7 @@
         <div id="assistant-module" class="module">
             <nav class="navbar">
                 <div class="navbar-left">
-                    <img src="/images/avatar-placeholder.png" alt="用户头像" class="avatar">
+                    <img src="images/avatar-placeholder.png" alt="用户头像" class="avatar">
                     <h1>评价小助手</h1>
                 </div>
                 <button onclick="switchModule('reviews-module')">去看看附近的评价</button>
@@ -24,7 +25,7 @@
                         <div class="message-content">
                             hi，你可以先让我看看商品的样子吗？（请上传图片）之后我会帮你生成精美的图文评价哦~
                         </div>
-                        <img src="/images/assistant-avatar.png" class="assistant-avatar" alt="Assistant Avatar">
+                        <img src="images/assistant-avatar.png" class="assistant-avatar" alt="Assistant Avatar">
                     </div>
                     
                 </div>
@@ -32,12 +33,12 @@
             </div>
             <div class="input-area">
                 <button class="icon-button" onclick="document.getElementById('upload-image').click()">
-                    <img src="/images/upload-icon.png" alt="上传图片" class="input-icon">
+                    <img src="images/upload-icon.png" alt="上传图片" class="input-icon">
                 </button>
                 <input type="file" id="upload-image" hidden>
                 <input type="text" id="user-input" placeholder="输入消息...">
                 <button class="icon-button"id="send-button">
-                    <img src="/images/send-icon.png" alt="发送消息" class="send-icon">
+                    <img src="images/send-icon.png" alt="发送消息" class="send-icon">
                 </button>
             </div>
         </div>
@@ -46,7 +47,7 @@
         <div id="reviews-module" class="module hidden">
             <nav class="navbar">
                 <div class="navbar-left">
-                    <img src="/images/avatar-placeholder.png" alt="用户头像" class="avatar">
+                    <img src="images/avatar-placeholder.png" alt="用户头像" class="avatar">
                     <h1>附近的评价</h1>
                 </div>
                 <button onclick="switchModule('assistant-module')">去创作我的评价</button>
@@ -58,15 +59,15 @@
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=wenji&backgroundColor=b6e3f4" alt="雯姐" class="reviewer-avatar">
                         <div class="reviewer-name">雯姐</div>
                     </div>
-                    <img src="/images/food-1.jpg" alt="恒电鱼一楼水煮鱼" class="review-image">
+                    <img src="images/food-1.jpg" alt="恒电鱼一楼水煮鱼" class="review-image">
                     <div class="review-content">这家的水煮鱼真的一绝！鱼肉新鲜，汤底麻辣鲜香，配菜也很丰富。最喜欢这个青椒的搭配，给辣味加了层清香，特别开胃！</div>
                     <div class="review-actions">
                         <div class="action-like">
-                            <img src="/images/like-icon.png" alt="点赞" class="action-icon">
+                            <img src="images/like-icon.png" alt="点赞" class="action-icon">
                             <span>28</span>
                         </div>
                         <div class="action-views">
-                            <img src="/images/view-icon.png" alt="浏览" class="action-icon">
+                            <img src="images/view-icon.png" alt="浏览" class="action-icon">
                             <span>＜100米</span>
                         </div>
                     </div>
@@ -77,15 +78,15 @@
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=chenxiaojie&backgroundColor=ffdfbf" alt="陈小姐" class="reviewer-avatar">
                         <div class="reviewer-name">陈小姐</div>
                     </div>
-                    <img src="/images/food-8.jpg" alt="烤肉拼盘" class="review-image">
+                    <img src="images/food-8.jpg" alt="烤肉拼盘" class="review-image">
                     <div class="review-content">烤肉拼盘太赞了！肉质鲜嫩多汁，烤制恰到好处。特别是五花肉，外焦里嫩，蘸上特制酱料简直绝了！配上生菜包着吃更是完美。</div>
                     <div class="review-actions">
                         <div class="action-like">
-                            <img src="/images/like-icon.png" alt="点赞" class="action-icon">
+                            <img src="images/like-icon.png" alt="点赞" class="action-icon">
                             <span>34</span>
                         </div>
                         <div class="action-views">
-                            <img src="/images/view-icon.png" alt="浏览" class="action-icon">
+                            <img src="images/view-icon.png" alt="浏览" class="action-icon">
                             <span>＜100米</span>
                         </div>
                     </div>
@@ -96,15 +97,15 @@
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=xiaowei&backgroundColor=ffd5dc" alt="小魏" class="reviewer-avatar">
                         <div class="reviewer-name">小魏</div>
                     </div>
-                    <img src="/images/food-3.jpg" alt="海鲜面" class="review-image">
+                    <img src="images/food-3.jpg" alt="海鲜面" class="review-image">
                     <div class="review-content">这碗海鲜面太良心了！虾仁和扇贝都很新鲜，面条劲道十足。汤底也很鲜美，能喝出满满的海鲜味，绝对值得一试！</div>
                     <div class="review-actions">
                         <div class="action-like">
-                            <img src="/images/like-icon.png" alt="点赞" class="action-icon">
+                            <img src="images/like-icon.png" alt="点赞" class="action-icon">
                             <span>45</span>
                         </div>
                         <div class="action-views">
-                            <img src="/images/view-icon.png" alt="浏览" class="action-icon">
+                            <img src="images/view-icon.png" alt="浏览" class="action-icon">
                             <span>＜100米</span>
                         </div>
                     </div>
@@ -115,15 +116,15 @@
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=zhangge&backgroundColor=c0aede" alt="张哥" class="reviewer-avatar">
                         <div class="reviewer-name">张哥</div>
                     </div>
-                    <img src="/images/food-4.jpg" alt="小龙虾" class="review-image">
+                    <img src="images/food-4.jpg" alt="小龙虾" class="review-image">
                     <div class="review-content">十三香小龙虾，一口就停不下来！肉质饱满，入味十足。最爱这个汤汁拌饭，连壳都想啃完，太香了！建议点份米饭一起吃。</div>
                     <div class="review-actions">
                         <div class="action-like">
-                            <img src="/images/like-icon.png" alt="点赞" class="action-icon">
+                            <img src="images/like-icon.png" alt="点赞" class="action-icon">
                             <span>12</span>
                         </div>
                         <div class="action-views">
-                            <img src="/images/view-icon.png" alt="浏览" class="action-icon">
+                            <img src="images/view-icon.png" alt="浏览" class="action-icon">
                             <span>＜100米</span>
                         </div>
                     </div>
@@ -134,15 +135,15 @@
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=wangxiansheng&backgroundColor=d1d4f9" alt="王先生" class="reviewer-avatar">
                         <div class="reviewer-name">王先生</div>
                     </div>
-                    <img src="/images/food-5.jpg" alt="火锅" class="review-image">
+                    <img src="images/food-5.jpg" alt="火锅" class="review-image">
                     <div class="review-content">这家火锅是我的心头好！鸳鸯锅底特色十足，清汤和麻辣都很地道。各种配菜新鲜丰富，特别是毛肚和虾滑，口感超级好！</div>
                     <div class="review-actions">
                         <div class="action-like">
-                            <img src="/images/like-icon.png" alt="点赞" class="action-icon">
+                            <img src="images/like-icon.png" alt="点赞" class="action-icon">
                             <span>77</span>
                         </div>
                         <div class="action-views">
-                            <img src="/images/view-icon.png" alt="浏览" class="action-icon">
+                            <img src="images/view-icon.png" alt="浏览" class="action-icon">
                             <span>212米</span>
                         </div>
                     </div>
@@ -153,15 +154,15 @@
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=linvshi&backgroundColor=ffdfbf" alt="李女士" class="reviewer-avatar">
                         <div class="reviewer-name">李女士</div>
                     </div>
-                    <img src="/images/food-6.jpg" alt="炒面" class="review-image">
+                    <img src="images/food-6.jpg" alt="炒面" class="review-image">
                     <div class="review-content">这份炒面绝了！面条炒得恰到好处，不会太软也不会太硬。配料给得很足，虾仁和豆芽的搭配让整道菜特别爽口，价格也很实惠。</div>
                     <div class="review-actions">
                         <div class="action-like">
-                            <img src="/images/like-icon.png" alt="点赞" class="action-icon">
+                            <img src="images/like-icon.png" alt="点赞" class="action-icon">
                             <span>45</span>
                         </div>
                         <div class="action-views">
-                            <img src="/images/view-icon.png" alt="浏览" class="action-icon">
+                            <img src="images/view-icon.png" alt="浏览" class="action-icon">
                             <span>433米</span>
                         </div>
                     </div>
@@ -172,15 +173,15 @@
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=chenxiaojie2&backgroundColor=b6e3f4" alt="陈小姐" class="reviewer-avatar">
                         <div class="reviewer-name">陈小姐</div>
                     </div>
-                    <img src="/images/food-7.jpg" alt="寿司拼盘" class="review-image">
+                    <img src="images/food-7.jpg" alt="寿司拼盘" class="review-image">
                     <div class="review-content">寿司拼盘颜值和口感都在线！三文鱼新鲜肥美，金枪鱼也是顶级的。米饭醋味适中，每一口都能感受到食材的精致，推荐！</div>
                     <div class="review-actions">
                         <div class="action-like">
-                            <img src="/images/like-icon.png" alt="点赞" class="action-icon">
+                            <img src="images/like-icon.png" alt="点赞" class="action-icon">
                             <span>32</span>
                         </div>
                         <div class="action-views">
-                            <img src="/images/view-icon.png" alt="浏览" class="action-icon">
+                            <img src="images/view-icon.png" alt="浏览" class="action-icon">
                             <span>512米</span>
                         </div>
                     </div>
@@ -191,15 +192,15 @@
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=wangxiaojie&backgroundColor=ffd5dc" alt="王小姐" class="reviewer-avatar">
                         <div class="reviewer-name">王小姐</div>
                     </div>
-                    <img src="/images/food-2.jpg" alt="炸鸡" class="review-image">
+                    <img src="images/food-2.jpg" alt="炸鸡" class="review-image">
                     <div class="review-content">这家炸鸡太香了！外皮酥脆，里面的肉超级多汁。蒜香味和辣味的搭配绝妙，配上啤酒简直是人间美味！周末必打卡。</div>
                     <div class="review-actions">
                         <div class="action-like">
-                            <img src="/images/like-icon.png" alt="点赞" class="action-icon">
+                            <img src="images/like-icon.png" alt="点赞" class="action-icon">
                             <span>32</span>
                         </div>
                         <div class="action-views">
-                            <img src="/images/view-icon.png" alt="浏览" class="action-icon">
+                            <img src="images/view-icon.png" alt="浏览" class="action-icon">
                             <span>700米</span>
                         </div>
                     </div>
@@ -210,15 +211,15 @@
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=hanzongg&backgroundColor=c0aede" alt="韩总" class="reviewer-avatar">
                         <div class="reviewer-name">韩总</div>
                     </div>
-                    <img src="/images/food-9.jpg" alt="牛肉面" class="review-image">
+                    <img src="images/food-9.jpg" alt="牛肉面" class="review-image">
                     <div class="review-content">兰州牛肉面，汤清味醇！牛肉炖得特别烂，一扯就散。面条手工拉制，韧性十足。配上香菜和辣椒油，绝对是早餐的不二之选！</div>
                     <div class="review-actions">
                         <div class="action-like">
-                            <img src="/images/like-icon.png" alt="点赞" class="action-icon">
+                            <img src="images/like-icon.png" alt="点赞" class="action-icon">
                             <span>51</span>
                         </div>
                         <div class="action-views">
-                            <img src="/images/view-icon.png" alt="浏览" class="action-icon">
+                            <img src="images/view-icon.png" alt="浏览" class="action-icon">
                             <span>1.2千米</span>
                         </div>
                     </div>
@@ -229,15 +230,15 @@
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=zhangxiansheng&backgroundColor=d1d4f9" alt="张先生" class="reviewer-avatar">
                         <div class="reviewer-name">张先生</div>
                     </div>
-                    <img src="/images/food-10.jpg" alt="点心拼盘" class="review-image">
+                    <img src="images/food-10.jpg" alt="点心拼盘" class="review-image">
                     <div class="review-content">广式点心样样精品！虾饺皮薄馅大，烧卖料足味美，叉烧包香甜可口。最喜欢这个蛋黄流沙包，趁热吃特别享受！</div>
                     <div class="review-actions">
                         <div class="action-like">
-                            <img src="/images/like-icon.png" alt="点赞" class="action-icon">
+                            <img src="images/like-icon.png" alt="点赞" class="action-icon">
                             <span>56</span>
                         </div>
                         <div class="action-views">
-                            <img src="/images/view-icon.png" alt="浏览" class="action-icon">
+                            <img src="images/view-icon.png" alt="浏览" class="action-icon">
                             <span>1.5千米</span>
                         </div>
                     </div>
@@ -245,6 +246,6 @@
             </div>
         </div>
     </div>
-    <script src="/script.js" defer></script>
+    <script src="script.js" defer></script>
 </body>
 </html>
