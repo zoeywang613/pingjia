@@ -1,7 +1,7 @@
 // 文心一言 API 配置
 const WENXIN_CONFIG = {
-    API_KEY: '<%= YOUR_API_KEY %>', // 请替换为你的API密钥
-    SECRET_KEY: '<%= YOUR_SECRET_KEY %>', // 请替换为你的密钥
+    API_KEY: '2WQqd2ieO2dfdMqHYfVL14iJ',
+    SECRET_KEY: 'o5VjSvLSluYxtzf30BBqsbE6pk8kDRxT',
     BASE_URL: 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro',
 };
 
