@@ -191,7 +191,7 @@ async function handleIntent(input) {
             break;
         case IntentTypes.OPTIMIZE_REVIEW:
             response = await callWenxinAPI(input, {
-                system: "你是一个专业的美食评价助手。请针对用户描述的美食体验，生成一个真实、自然的评价。"
+                system: "你是一个专业的评价助手。请根据用户描述，生成100字左右的一个真实、自然的评价。"
             });
             break;
         case IntentTypes.CHAT:
@@ -529,75 +529,92 @@ function extractProductInfo(input, keywords) {
 let currentAccessToken = null;
 let tokenExpireTime = 0;
 async function getAccessToken() {
-    // 如果令牌还在有效期内，直接返回
-    if (currentAccessToken && Date.now() < tokenExpireTime) {
-        return currentAccessToken;
-    }
-
-    const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${WENXIN_CONFIG.API_KEY}&client_secret=${WENXIN_CONFIG.SECRET_KEY}`;
     try {
-        const response = await fetch(url, {
+        console.log('正在获取访问令牌...');
+        const response = await fetch('http://localhost:3000/api/token', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Content-Type': 'application/json'
             }
         });
-        const result = await response.json();
-        if (result.access_token) {
-            currentAccessToken = result.access_token;
-            // 设置令牌过期时间（提前5分钟过期）
-            tokenExpireTime = Date.now() + (result.expires_in - 300) * 1000;
-            return currentAccessToken;
+        
+        if (!response.ok) {
+            throw new Error(`获取令牌失败: ${response.status}`);
         }
-        throw new Error('Failed to get access token');
+        
+        const data = await response.json();
+        if (!data.access_token) {
+            throw new Error('获取令牌失败: 返回数据中没有access_token');
+        }
+        
+        console.log('成功获取访问令牌');
+        return data.access_token;
     } catch (error) {
         console.error('获取访问令牌失败:', error);
-        return null;
+        throw error;
     }
 }
 
-// 调用文心一言 API
-async function callWenxinAPI(prompt, config) {
-    const accessToken = await getAccessToken();
-    if (!accessToken) {
-        return '抱歉，我现在无法连接到服务器，请稍后再试。';
-    }
-
-    const url = `${WENXIN_CONFIG.BASE_URL}?access_token=${accessToken}`;
+// 调用文心API
+async function callWenxinAPI(input, options = {}) {
     try {
-        console.log('发送请求到文心一言API:', url); // 调试日志
-        console.log('请求内容:', prompt); // 调试日志
+        console.log('准备调用文心API...');
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+            throw new Error('无法获取访问令牌');
+        }
+        
+        const messages = [];
+        
+        // system提示放在开头，作为assistant的消息
+        if (options.system) {
+            messages.push({
+                role: 'assistant',
+                content: options.system
+            });
+            
+            // 添加一个空的用户确认消息
+            messages.push({
+                role: 'user',
+                content: '好的，我明白了。'
+            });
+        }
 
-        const response = await fetch(url, {
+        // 用户实际输入放在最后
+        messages.push({
+            role: 'user',
+            content: input
+        });
+
+        console.log('发送请求到文心API...');
+        console.log('请求内容:', { messages });
+        
+        const response = await fetch('http://localhost:3000/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                system: config.system,
-                messages: [{
-                    role: "user",
-                    content: prompt
-                }],
-                temperature: 0.8,
-                top_p: 0.9,
-                penalty_score: 1.0
+                accessToken,
+                messages
             })
         });
 
-        const result = await response.json();
-        console.log('API完整响应:', result); // 调试日志
-
-        if (!response.ok || result.error_code) {
-            console.error('API错误响应:', result);
-            throw new Error(`API返回错误: ${result.error_msg || '未知错误'}`);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API请求失败: ${response.status} - ${errorText}`);
         }
 
-        return result.result || '抱歉，我现在无法生成回复，请稍后再试。';
+        const data = await response.json();
+        if (!data.result) {
+            throw new Error('API响应中没有result字段');
+        }
+        
+        console.log('成功获取API响应:', data);
+        return data.result;
     } catch (error) {
-        console.error('调用文心一言API失败:', error);
-        return `抱歉，发生了一些错误: ${error.message}`;
+        console.error('调用文心API失败:', error);
+        throw error;
     }
 }
 
